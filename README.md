@@ -4,16 +4,16 @@ Java API wrapper for Quarters
 Maven:
 ```xml
 <repositories>
-	<repository>
-	    <id>jitpack.io</id>
-		<url>https://jitpack.io</url>
+    <repository>
+        <id>jitpack.io</id>
+        <url>https://jitpack.io</url>
     </repository>
 </repositories>
 
 <dependency>
-	<groupId>com.github.weiks</groupId>
-	<artifactId>java-quarters</artifactId>
-	<version>1.0.0</version>
+    <groupId>com.github.weiks</groupId>
+    <artifactId>java-quarters</artifactId>
+    <version>1.0.0</version>
 </dependency>
 ```
 Gradle:
