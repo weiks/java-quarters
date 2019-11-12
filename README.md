@@ -42,5 +42,5 @@ String refreshToken = call.execute().body().getRefreshToken();
 // Execute asynchronously with callback
 call.enqueue(new MyAccessTokenCallback());
 ```
----
+### Documentation
 - [General API documentation](https://weiks.github.io/quarters-docs/)
