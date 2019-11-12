@@ -12,6 +12,7 @@ import retrofit2.Call;
 import retrofit2.Retrofit;
 import retrofit2.converter.gson.GsonConverterFactory;
 
+import java.io.UnsupportedEncodingException;
 import java.net.URLEncoder;
 import java.nio.charset.Charset;
 
@@ -186,11 +187,11 @@ public class Quarters {
      * @param redirectURL URL to redirect user to after they have authorized app
      * @return URL for page allowing user to authorize app to access their account
      */
-    public String getAuthorizationURL(String redirectURL) {
+    public String getAuthorizationURL(String redirectURL) throws UnsupportedEncodingException {
 
         return environment.getDefaultQuartersURL() + "/oauth/authorize?response_type=code&inline=true" +
                 "&client_id=" + clientID +
-                "&redirect_uri=" + URLEncoder.encode(redirectURL, Charset.defaultCharset());
+                "&redirect_uri=" + URLEncoder.encode(redirectURL, Charset.defaultCharset().name());
     }
 
     /**
@@ -213,12 +214,12 @@ public class Quarters {
      * @param redirectURL URL to redirect user to after they have signed up
      * @return URL allowing guest user to sign up for an account
      */
-    public String getGuestSignupURL(String accessToken, String redirectURL) {
+    public String getGuestSignupURL(String accessToken, String redirectURL) throws UnsupportedEncodingException {
 
         return environment.getQuartersURL() + "/guest?response_type=code&inline=true" +
                 "&client_id=" + clientID +
                 "&toStr=" + accessToken +
-                "&redirect_uri=" + URLEncoder.encode(redirectURL, Charset.defaultCharset());
+                "&redirect_uri=" + URLEncoder.encode(redirectURL, Charset.defaultCharset().name());
     }
 
     /**

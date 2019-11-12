@@ -5,7 +5,7 @@ plugins {
 group 'com.p3pi27'
 version '1.0.0'
 
-sourceCompatibility = JavaVersion.VERSION_1_10
+sourceCompatibility = 1.8
 
 repositories {
     mavenCentral()
