@@ -1,5 +1,5 @@
 plugins {
-    id 'java-library'
+    id 'java'
 }
 
 group 'com.p3pi27'
@@ -12,6 +12,10 @@ repositories {
 }
 
 dependencies {
-    api 'com.squareup.retrofit2:retrofit:2.6.2'
-    api 'com.squareup.retrofit2:converter-gson:2.6.2'
+    compile 'com.squareup.retrofit2:retrofit:2.6.2'
+    compile 'com.squareup.retrofit2:converter-gson:2.6.2'
+}
+
+jar {
+    from configurations.compile.collect { it.isDirectory() ? it : zipTree(it) }
 }
