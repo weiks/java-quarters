@@ -13,7 +13,7 @@ Maven:
 <dependency>
     <groupId>com.github.weiks</groupId>
     <artifactId>java-quarters</artifactId>
-    <version>1.0.0</version>
+    <version>1.0</version>
 </dependency>
 ```
 Gradle:
@@ -23,7 +23,7 @@ repositories {
 }
 
 dependencies {
-    implementation 'com.github.weiks:java-quarters:1.0.0'
+    implementation 'com.github.weiks:java-quarters:1.0'
 }
 ```
 Download from [releases page](https://github.com/weiks/java-quarters/releases)
