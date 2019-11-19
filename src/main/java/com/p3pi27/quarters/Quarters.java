@@ -1,5 +1,10 @@
 package com.p3pi27.quarters;
 
+import com.fasterxml.jackson.annotation.JsonAutoDetect;
+import com.fasterxml.jackson.annotation.PropertyAccessor;
+import com.fasterxml.jackson.databind.DeserializationFeature;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.SerializationFeature;
 import com.p3pi27.quarters.response.oauth.AccessToken;
 import com.p3pi27.quarters.response.oauth.RefreshToken;
 import com.p3pi27.quarters.response.transfer.TransferRequest;
@@ -7,10 +12,9 @@ import com.p3pi27.quarters.response.user.Account;
 import com.p3pi27.quarters.response.user.AccountBalance;
 import com.p3pi27.quarters.response.user.GuestAccount;
 import com.p3pi27.quarters.response.user.User;
-import okhttp3.OkHttpClient;
 import retrofit2.Call;
 import retrofit2.Retrofit;
-import retrofit2.converter.gson.GsonConverterFactory;
+import retrofit2.converter.jackson.JacksonConverterFactory;
 
 import java.io.UnsupportedEncodingException;
 import java.net.URLEncoder;
@@ -25,17 +29,6 @@ public class Quarters {
     private QuartersService service;
 
     /**
-     * Create new Quarters instance with default environment ({@link QuartersEnvironment#PRODUCTION})
-     *
-     * @param clientID  Your app ID
-     * @param clientKey Your app key
-     */
-    public Quarters(String clientID, String clientKey) {
-
-        this(clientID, clientKey, QuartersEnvironment.PRODUCTION);
-    }
-
-    /**
      * Creates new Quarters instance
      *
      * @param clientID    Your app ID
@@ -44,28 +37,17 @@ public class Quarters {
      */
     public Quarters(String clientID, String clientKey, QuartersEnvironment environment) {
 
-        this(clientID, clientKey, environment, new OkHttpClient());
-    }
-
-    /**
-     * Creates new Quarters instance
-     *
-     * @param clientID    Your app ID
-     * @param clientKey   Your app key
-     * @param environment Quarters environment - changes the base API URL
-     * @param httpClient  HTTP client to use for requests
-     */
-    public Quarters(String clientID, String clientKey, QuartersEnvironment environment, OkHttpClient httpClient) {
-
-
         this.clientID = clientID;
         this.clientKey = clientKey;
+
+        ObjectMapper mapper = new ObjectMapper()
+                .configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false)
+                .setVisibility(PropertyAccessor.FIELD, JsonAutoDetect.Visibility.ANY);
 
         this.environment = environment;
         service = new Retrofit.Builder()
                 .baseUrl(environment.getApiURL())
-                .addConverterFactory(GsonConverterFactory.create())
-                .client(httpClient)
+                .addConverterFactory(JacksonConverterFactory.create(mapper))
                 .build()
                 .create(QuartersService.class);
     }

@@ -1,9 +1,10 @@
 plugins {
+    id 'com.github.johnrengelman.shadow' version '5.2.0'
     id 'java'
 }
 
 group 'com.p3pi27'
-version '1.0'
+version '1.1'
 
 sourceCompatibility = 1.8
 
@@ -13,9 +14,10 @@ repositories {
 
 dependencies {
     compile 'com.squareup.retrofit2:retrofit:2.6.2'
-    compile 'com.squareup.retrofit2:converter-gson:2.6.2'
+    compile 'com.squareup.retrofit2:converter-jackson:2.6.2'
 }
 
-jar {
-    from configurations.compile.collect { it.isDirectory() ? it : zipTree(it) }
+shadowJar {
+    configurations = [project.configurations.compile]
+    getArchiveFileName().set("${baseName}-${version}.${extension}")
 }
