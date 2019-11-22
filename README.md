@@ -13,7 +13,7 @@ Maven:
 <dependency>
     <groupId>com.github.weiks</groupId>
     <artifactId>java-quarters</artifactId>
-    <version>1.0</version>
+    <version>1.1</version>
 </dependency>
 ```
 Gradle:
@@ -23,7 +23,7 @@ repositories {
 }
 
 dependencies {
-    implementation 'com.github.weiks:java-quarters:1.0'
+    implementation 'com.github.weiks:java-quarters:1.1'
 }
 ```
 Download from [releases page](https://github.com/weiks/java-quarters/releases)
@@ -31,7 +31,7 @@ Download from [releases page](https://github.com/weiks/java-quarters/releases)
 [Create an app](http://poq.gg/apps/create/new) and use app ID and app key to authenticate
 ```java
 // Create new Quarters instance with credentials
-Quarters quarters = new Quarters("<app-ID>", "<app-key>");
+Quarters quarters = new Quarters("<app-ID>", "<app-key>", QuartersEnvironment.<environment>);
 
 // Fetch user access token
 Call<AccessToken> call = quarters.getAccessToken("<refresh-token>");
