@@ -1,5 +1,6 @@
 plugins {
     id 'com.github.johnrengelman.shadow' version '5.2.0'
+    id 'maven'
     id 'java'
 }
 
@@ -18,6 +19,19 @@ dependencies {
 }
 
 shadowJar {
+    archiveClassifier.set(null)
     configurations = [project.configurations.compile]
-    getArchiveFileName().set("${baseName}-${version}.${extension}")
 }
+
+task sourcesJar(type: Jar, dependsOn: classes) {
+    archiveClassifier.set('sources')
+    from sourceSets.main.allSource
+}
+
+task javadocJar(type: Jar, dependsOn: javadoc) {
+    archiveClassifier.set('javadoc')
+    from javadoc.destinationDir
+}
+
+shadowJar.finalizedBy('sourcesJar')
+shadowJar.finalizedBy('javadocJar')

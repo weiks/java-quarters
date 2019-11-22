@@ -35,11 +35,6 @@ public enum QuartersEnvironment {
         return apiURL;
     }
 
-    public String getDefaultQuartersURL() {
-
-        return PRODUCTION.quartersURL;
-    }
-
     public String getQuartersURL() {
 
         return quartersURL;

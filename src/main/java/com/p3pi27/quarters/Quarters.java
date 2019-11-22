@@ -4,7 +4,6 @@ import com.fasterxml.jackson.annotation.JsonAutoDetect;
 import com.fasterxml.jackson.annotation.PropertyAccessor;
 import com.fasterxml.jackson.databind.DeserializationFeature;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.fasterxml.jackson.databind.SerializationFeature;
 import com.p3pi27.quarters.response.oauth.AccessToken;
 import com.p3pi27.quarters.response.oauth.RefreshToken;
 import com.p3pi27.quarters.response.transfer.TransferRequest;
@@ -33,7 +32,7 @@ public class Quarters {
      *
      * @param clientID    Your app ID
      * @param clientKey   Your app key
-     * @param environment Quarters environment - changes the base API URL
+     * @param environment Quarters environment - changes the URL
      */
     public Quarters(String clientID, String clientKey, QuartersEnvironment environment) {
 
@@ -159,7 +158,7 @@ public class Quarters {
      */
     public String getAuthorizationURL() {
 
-        return environment.getDefaultQuartersURL() + "/oauth/authorize" +
+        return environment.getQuartersURL() + "/oauth/authorize" +
                 "?response_type=code" +
                 "&client_id=" + clientID +
                 "&inline=true";
@@ -167,11 +166,12 @@ public class Quarters {
 
     /**
      * @param redirectURL URL to redirect user to after they have authorized app
+     * @throws UnsupportedEncodingException Thrown when the default charset is unsupported
      * @return URL for page allowing user to authorize app to access their account
      */
     public String getAuthorizationURL(String redirectURL) throws UnsupportedEncodingException {
 
-        return environment.getDefaultQuartersURL() + "/oauth/authorize?response_type=code&inline=true" +
+        return environment.getQuartersURL() + "/oauth/authorize?response_type=code&inline=true" +
                 "&client_id=" + clientID +
                 "&redirect_uri=" + URLEncoder.encode(redirectURL, Charset.defaultCharset().name());
     }
@@ -194,6 +194,7 @@ public class Quarters {
      *
      * @param accessToken Guest user's access token
      * @param redirectURL URL to redirect user to after they have signed up
+     * @throws UnsupportedEncodingException Thrown when the default charset is unsupported
      * @return URL allowing guest user to sign up for an account
      */
     public String getGuestSignupURL(String accessToken, String redirectURL) throws UnsupportedEncodingException {
