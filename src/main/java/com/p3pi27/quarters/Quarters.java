@@ -201,7 +201,7 @@ public class Quarters {
 
         return environment.getQuartersURL() + "/guest?response_type=code&inline=true" +
                 "&client_id=" + clientID +
-                "&toStr=" + accessToken +
+                "&token=" + accessToken +
                 "&redirect_uri=" + URLEncoder.encode(redirectURL, Charset.defaultCharset().name());
     }
 
