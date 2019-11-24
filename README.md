@@ -27,6 +27,8 @@ dependencies {
 }
 ```
 Download from [releases page](https://github.com/weiks/java-quarters/releases)
+
+[![](https://jitpack.io/v/weiks/java-quarters.svg)](https://jitpack.io/#weiks/java-quarters)
 ### Usage
 [Create an app](http://poq.gg/apps/create/new) and use app ID and app key to authenticate
 ```java
