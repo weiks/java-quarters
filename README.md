@@ -44,5 +44,5 @@ String refreshToken = call.execute().body().getRefreshToken();
 call.enqueue(new MyAccessTokenCallback());
 ```
 ### Documentation
-- [Javadocs](https://javadoc.jitpack.io/com/github/weiks/java-quarters/index/javadoc/index.html)
+- [Javadocs](https://javadoc.jitpack.io/com/github/weiks/java-quarters/latest/javadoc/index.html)
 - [General API documentation](https://weiks.github.io/quarters-docs/)
