@@ -6,68 +6,52 @@ import com.fasterxml.jackson.databind.DeserializationFeature;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.p3pi27.quarters.response.oauth.AccessToken;
 import com.p3pi27.quarters.response.oauth.RefreshToken;
-import com.p3pi27.quarters.response.transfer.TransferRequest;
+import com.p3pi27.quarters.response.transfer.ServerTransferRequest;
+import com.p3pi27.quarters.response.transfer.UserTransferRequest;
 import com.p3pi27.quarters.response.user.Account;
 import com.p3pi27.quarters.response.user.AccountBalance;
 import com.p3pi27.quarters.response.user.GuestAccount;
 import com.p3pi27.quarters.response.user.User;
+import okhttp3.HttpUrl;
 import retrofit2.Call;
 import retrofit2.Retrofit;
 import retrofit2.converter.jackson.JacksonConverterFactory;
+import retrofit2.http.*;
 
-import java.io.UnsupportedEncodingException;
-import java.net.URLEncoder;
-import java.nio.charset.Charset;
+import java.util.Map;
+import java.util.concurrent.Executor;
+
 
 public class Quarters {
 
-    private final String clientID;
-    private final String clientKey;
+    private final String clientID, clientKey;
+    private final Environment environment;
+    private final Service service;
+    private final boolean shortenURLs;
 
-    private QuartersEnvironment environment;
-    private QuartersService service;
-
-    /**
-     * Creates new Quarters instance
-     *
-     * @param clientID    Your app ID
-     * @param clientKey   Your app key
-     * @param environment Quarters environment - changes the URL
-     */
-    public Quarters(String clientID, String clientKey, QuartersEnvironment environment) {
+    private Quarters(String clientID, String clientKey, Environment environment, Service service, boolean shortenURLs) {
 
         this.clientID = clientID;
         this.clientKey = clientKey;
-
-        ObjectMapper mapper = new ObjectMapper()
-                .configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false)
-                .setVisibility(PropertyAccessor.FIELD, JsonAutoDetect.Visibility.ANY);
-
         this.environment = environment;
-        service = new Retrofit.Builder()
-                .baseUrl(environment.getApiURL())
-                .addConverterFactory(JacksonConverterFactory.create(mapper))
-                .build()
-                .create(QuartersService.class);
+        this.service = service;
+        this.shortenURLs = shortenURLs;
     }
 
     /**
-     * Get a user's refresh and access token
-     *
-     * @param authorizationCode Code received after user authorizes app to access their account
-     * @return Invocation of method to get {@link RefreshToken} (containing access and refresh token)
+     * Get a user's refresh and access tokens
+     * @param authorizationCode User's authorization code
+     * @return Retrofit {@link Call} to get {@link RefreshToken}
      */
     public Call<RefreshToken> getRefreshToken(String authorizationCode) {
 
         return service.getRefreshToken(RefreshToken.getRequestBody(clientID, clientKey, authorizationCode));
-
     }
 
     /**
      * Get a user's access token
-     *
      * @param refreshToken User's refresh token
-     * @return Invocation of method to get {@link AccessToken}
+     * @return Retrofit {@link Call} to get {@link AccessToken}
      */
     public Call<AccessToken> getAccessToken(String refreshToken) {
 
@@ -76,9 +60,8 @@ public class Quarters {
 
     /**
      * Get a user's details
-     *
      * @param accessToken User's access token
-     * @return Invocation of method to get {@link User}
+     * @return Retrofit {@link Call} to get {@link AccessToken}
      */
     public Call<User> getUser(String accessToken) {
 
@@ -86,10 +69,9 @@ public class Quarters {
     }
 
     /**
-     * Get a user's account - a response with multiple accounts demonstrates a small bug in the API
-     *
+     * Get a user's accounts - a response with many accounts is a bug in the API
      * @param accessToken User's access token
-     * @return Invocation of method to get {@link Account[]}
+     * @return Retrofit {@link Call} to get {@link Account[]}
      */
     public Call<Account[]> getAccounts(String accessToken) {
 
@@ -97,11 +79,10 @@ public class Quarters {
     }
 
     /**
-     * Get the balance of a user's account
-     *
-     * @param accessToken    User's access token
-     * @param accountAddress Account Etherum address
-     * @return Invocation of method to get {@link AccountBalance}
+     * Get an account's balance
+     * @param accessToken User's access token
+     * @param accountAddress Account address
+     * @return Retrofit {@link Call} to get {@link AccountBalance}
      */
     public Call<AccountBalance> getAccountBalance(String accessToken, String accountAddress) {
 
@@ -110,9 +91,8 @@ public class Quarters {
 
     /**
      * Create a guest account
-     *
-     * @param serverKey App's server API key
-     * @return Invocation of method to get {@link GuestAccount}
+     * @param serverKey Server API key
+     * @return Retrofit {@link Call} to get {@link GuestAccount}
      */
     public Call<GuestAccount> createGuestAccount(String serverKey) {
 
@@ -120,120 +100,251 @@ public class Quarters {
     }
 
     /**
-     * Request a transfer of Quarters from a user's account
-     *
+     * Request the transfer of Quarters from a user's account to the app's account (for purchases)
      * @param accessToken User's access token
-     * @param amount      Amount to transfer
-     * @return Invocation of method to get {@link TransferRequest}
+     * @param amount Amount of Quarters to transfer
+     * @param description Description of purchase (can be null)
+     * @return Retrofit {@link Call} to get {@link UserTransferRequest}
      */
-    public Call<TransferRequest> requestTransfer(String accessToken, long amount) {
+    public Call<UserTransferRequest> requestUserTransfer(String accessToken, long amount, String description) {
 
-        return requestTransfer(accessToken, amount, null);
+        return service.requestUserTransfer("Bearer " + accessToken,
+                UserTransferRequest.getRequestBody(clientID, amount, description));
     }
 
     /**
-     * Request a transfer of Quarters from a user's account
-     *
-     * @param accessToken User's access token
-     * @param amount      Amount to transfer
-     * @param description Description (optional, shows on authorization page)
-     * @return Invocation of method to get {@link TransferRequest}
+     * Request the transfer of Quarters from the app's account to a user's account
+     * @param serverKey Server API key
+     * @param appAccountAddress Server account address
+     * @param amount Amount of Quarters to transfer
+     * @param userID User ID (only one of this and accountAddress is needed)
+     * @param accountAddress User account address (only one of this and userID is needed)
+     * @return Retrofit {@link Call} to get {@link ServerTransferRequest}
      */
-    public Call<TransferRequest> requestTransfer(String accessToken, long amount, String description) {
+    public Call<ServerTransferRequest> requestServerTransfer(String serverKey, String appAccountAddress, long amount,
+                                                             String userID, String accountAddress) {
 
-        return service.requestTransfer(accessToken, TransferRequest.getRequestBody(clientID, amount,
-                description));
+        return service.requestServerTransfer("Bearer " + serverKey, appAccountAddress,
+                ServerTransferRequest.getRequestBody(amount, userID, accountAddress));
     }
 
     /**
-     * @return Current {@link QuartersEnvironment}, which changes the base API URL
+     * Get URL allowing users to authorize app
+     * @param redirectURL URL to redirect users to after authorization (can be null)
+     * @return URL to send users to in order for them to authorize app
      */
-    public QuartersEnvironment getEnvironment() {
+    public HttpUrl getAuthorizationURL(String redirectURL) {
 
-        return environment;
+        return environment.getQuartersURL(shortenURLs).newBuilder().addPathSegments("oauth/authorize")
+                .addQueryParameter("response_type", "code")
+                .addQueryParameter("inline", "true")
+                .addQueryParameter("client_id", clientID)
+                .addQueryParameter("redirect_uri", redirectURL)
+                .build();
     }
 
     /**
-     * @return The URL for page allowing user to authorize app to access their account
-     */
-    public String getAuthorizationURL() {
-
-        return environment.getQuartersURL() + "/oauth/authorize" +
-                "?response_type=code" +
-                "&client_id=" + clientID +
-                "&inline=true";
-    }
-
-    /**
-     * @param redirectURL URL to redirect user to after they have authorized app
-     * @throws UnsupportedEncodingException Thrown when the default charset is unsupported
-     * @return URL for page allowing user to authorize app to access their account
-     */
-    public String getAuthorizationURL(String redirectURL) throws UnsupportedEncodingException {
-
-        return environment.getQuartersURL() + "/oauth/authorize?response_type=code&inline=true" +
-                "&client_id=" + clientID +
-                "&redirect_uri=" + URLEncoder.encode(redirectURL, Charset.defaultCharset().name());
-    }
-
-    /**
-     * See {@link #createGuestAccount(String)}
-     *
+     * Get URL allowing guest users to sign up for full account
      * @param accessToken Guest user's access token
-     * @return URL allowing guest user to sign up for an account
+     * @param redirectURL URL to redirect users to after sign-up (can be null)
+     * @return URL to send guest users to in order for them to register for full account
      */
-    public String getGuestSignupURL(String accessToken) {
+    public HttpUrl getGuestSignupURL(String accessToken, String redirectURL) {
 
-        return environment.getQuartersURL() + "/guest?response_type=code&inline=true" +
-                "&client_id=" + clientID +
-                "&token=" + accessToken;
+        return environment.getQuartersURL(shortenURLs).newBuilder().addPathSegments("guest")
+                .addQueryParameter("response_type", "code")
+                .addQueryParameter("inline", "true")
+                .addQueryParameter("client_id", clientID)
+                .addQueryParameter("token", accessToken)
+                .addQueryParameter("redirect_uri", redirectURL)
+                .build();
     }
 
     /**
-     * See {@link #createGuestAccount(String)}
+     * Get URL allowing users to allow transfer of Quarters from their account (for purchases)
      *
-     * @param accessToken Guest user's access token
-     * @param redirectURL URL to redirect user to after they have signed up
-     * @throws UnsupportedEncodingException Thrown when the default charset is unsupported
-     * @return URL allowing guest user to sign up for an account
+     * @param requestID     Request ID (see {@link #requestUserTransfer(String, long, String)})
+     * @param firebaseToken Firebase token (for guest accounts only)
+     * @return URL to send users to in order for them to approve transfer
      */
-    public String getGuestSignupURL(String accessToken, String redirectURL) throws UnsupportedEncodingException {
+    public HttpUrl getTransferAuthorizationURL(String requestID, String firebaseToken) {
 
-        return environment.getQuartersURL() + "/guest?response_type=code&inline=true" +
-                "&client_id=" + clientID +
-                "&toStr=" + accessToken +
-                "&redirect_uri=" + URLEncoder.encode(redirectURL, Charset.defaultCharset().name());
+        return environment.getQuartersURL(shortenURLs).newBuilder().addPathSegments("requests/" + requestID)
+                .addQueryParameter("inline", "true")
+                .addQueryParameter("firebase_token", firebaseToken)
+                .build();
     }
 
     /**
-     * Get transfer authorization URL for user. See {@link #requestTransfer(String, long, String)}
-     *
-     * @param requestID ID of {@link TransferRequest}
-     * @return URL allowing user to authorize transfer
+     * Get URL showing users their access and refresh tokens for app
+     * @return URL to send users to in order for them to see tokens
      */
-    public String getTransferAuthorizationURL(String requestID) {
+    public HttpUrl getTokenURL() {
 
-        return environment.getQuartersURL() + "/requests/" + requestID + "?inline=true";
+        return environment.getQuartersURL(shortenURLs).newBuilder().addPathSegments("access-token")
+                .addQueryParameter("app_id", clientID)
+                .addQueryParameter("app_key", clientKey)
+                .build();
     }
 
-    /**
-     * Get transfer authorization URL for guest user. See {@link #requestTransfer(String, long, String)}
-     *
-     * @param requestID     ID of {@link TransferRequest}
-     * @param firebaseToken Firebase token (for guest accounts only - see {@link #createGuestAccount(String)}
-     * @return URL allowing guest user to authorize transfer
-     */
-    public String getTransferAuthorizationURL(String requestID, String firebaseToken) {
+    public enum Environment {
 
-        return environment.getQuartersURL() + "/requests/" + requestID + "?inline=true" +
-                "&firebase_token=" + firebaseToken;
+        /**
+         * Default environment
+         */
+        PRODUCTION(null),
+        /**
+         * Development environment
+         */
+        DEVELOPMENT("dev"),
+        /**
+         * Sandbox environment
+         */
+        SANDBOX("sandbox");
+
+        private final HttpUrl shortQuartersURL, longQuartersURL, apiURL;
+
+        Environment(String prefix) {
+
+            shortQuartersURL = new HttpUrl.Builder().scheme("https")
+                    .host((prefix == null ? "www" : prefix) + ".poq.gg").build();
+
+            longQuartersURL = new HttpUrl.Builder().scheme("https")
+                    .host((prefix == null ? "www" : prefix) + ".pocketfulofquarters.com").build();
+
+            apiURL = new HttpUrl.Builder().scheme("https")
+                    .host("api" + (prefix == null ? "." : "." + prefix + ".") + "pocketfulofquarters.com")
+                    .addPathSegment("v1").build();
+        }
+
+        /**
+         * @return Long Quarters URL
+         */
+        public HttpUrl getQuartersURL() {
+
+            return getQuartersURL(false);
+        }
+
+        /**
+         * @param shorten Whether to shorten URL or not
+         * @return Quarters URL
+         */
+        public HttpUrl getQuartersURL(boolean shorten) {
+
+            if (shorten) {
+
+                return shortQuartersURL;
+
+            } else {
+
+                return longQuartersURL;
+            }
+        }
+
+        /**
+         * @return Quarters API URL
+         */
+        public HttpUrl getApiURL() {
+
+            return apiURL;
+        }
     }
 
-    /**
-     * @return URL showing a user their refresh and access token
-     */
-    public String getTokenURL() {
+    private interface Service {
 
-        return environment.getQuartersURL() + "/access-token?app_id=" + clientID + "&app_key=" + clientKey;
+        @POST("oauth/token")
+        Call<RefreshToken> getRefreshToken(@Body Map<String, Object> body);
+
+        @POST("oauth/token")
+        Call<AccessToken> getAccessToken(@Body Map<String, Object> body);
+
+        @GET("me")
+        Call<User> getUser(@Header("Authorization") String authorization);
+
+        @GET("accounts")
+        Call<Account[]> getAccounts(@Header("Authorization") String authorization);
+
+        @GET("accounts/{account-address}/balance")
+        Call<AccountBalance> getAccountBalance(@Header("Authorization") String authorization,
+                                               @Path("account-address") String accountAddress);
+
+        @POST("new-guest")
+        Call<GuestAccount> createGuestAccount(@Header("Authorization") String authorization);
+
+        @POST("requests")
+        Call<UserTransferRequest> requestUserTransfer(@Header("Authorization") String authorization,
+                                                      @Body Map<String, Object> body);
+
+        @POST("accounts/{app-account-address}/transfer")
+        Call<ServerTransferRequest> requestServerTransfer(@Header("Authorization") String authorization,
+                                                          @Path("app-account-address") String appAccountAddress,
+                                                          @Body Map<String, Object> body);
+    }
+
+    public static class Builder {
+
+        private final String clientID, clientKey;
+        private Environment environment = Environment.PRODUCTION;
+        private Retrofit.Builder retrofitBuilder = new Retrofit.Builder();
+        private boolean shortenURLs;
+
+        /**
+         * Construct builder instance
+         *
+         * @param clientID  App ID
+         * @param clientKey App secret
+         */
+        public Builder(String clientID, String clientKey) {
+
+            this.clientID = clientID;
+            this.clientKey = clientKey;
+        }
+
+        /**
+         * Set the app's environment (default: PRODUCTION)
+         *
+         * @param environment Environment to use
+         * @return Modified builder instance
+         */
+        public Builder environment(Environment environment) {
+
+            this.environment = environment;
+            return this;
+        }
+
+        /**
+         * Set the executor for response callbacks
+         *
+         * @param callbackExecutor Executor to use
+         * @return Modified builder instance
+         */
+        public Builder callbackExecutor(Executor callbackExecutor) {
+
+            retrofitBuilder.callbackExecutor(callbackExecutor);
+            return this;
+        }
+
+        /**
+         * Set whether to shorten Quarters URLs
+         *
+         * @param shortenURLs Whether to shorten or not
+         * @return Modified builder instance
+         */
+        public Builder shortenURLs(boolean shortenURLs) {
+
+            this.shortenURLs = shortenURLs;
+            return this;
+        }
+
+        public Quarters build() {
+
+            return new Quarters(clientID, clientKey, environment, retrofitBuilder
+                    .baseUrl(environment.getApiURL() + "/")
+                    .addConverterFactory(JacksonConverterFactory.create(
+                            new ObjectMapper()
+                                    .configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false)
+                                    .setVisibility(PropertyAccessor.ALL, JsonAutoDetect.Visibility.ANY)))
+                    .build().create(Service.class), shortenURLs);
+        }
     }
 }

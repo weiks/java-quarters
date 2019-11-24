@@ -4,10 +4,7 @@ import java.time.Instant;
 
 public class Account {
 
-    private String id;
-    private String address;
-    private String created;
-    private String userId;
+    private String id, address, created, userId;
 
     public String getAccountID() {
 
@@ -19,7 +16,7 @@ public class Account {
         return address;
     }
 
-    public Instant getCreted() {
+    public Instant getCreated() {
 
         return Instant.parse(created);
     }

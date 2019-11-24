@@ -5,7 +5,7 @@ plugins {
 }
 
 group 'com.p3pi27'
-version '1.1'
+version '1.2'
 
 sourceCompatibility = 1.8
 
@@ -33,5 +33,8 @@ task javadocJar(type: Jar, dependsOn: javadoc) {
     from javadoc.destinationDir
 }
 
-shadowJar.finalizedBy('sourcesJar')
-shadowJar.finalizedBy('javadocJar')
+artifacts {
+    archives sourcesJar
+    archives javadocJar
+    archives shadowJar
+}

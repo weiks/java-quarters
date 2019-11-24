@@ -7,9 +7,9 @@ public class AccessToken {
 
     private String access_token;
 
-    public static Map<String, String> getRequestBody(String clientID, String clientKey, String refreshToken) {
+    public static Map<String, Object> getRequestBody(String clientID, String clientKey, String refreshToken) {
 
-        Map<String, String> body = new HashMap<>();
+        Map<String, Object> body = new HashMap<>();
 
         body.put("client_id", clientID);
         body.put("client_secret", clientKey);

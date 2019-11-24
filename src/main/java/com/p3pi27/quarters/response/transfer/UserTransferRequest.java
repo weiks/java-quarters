@@ -3,7 +3,7 @@ package com.p3pi27.quarters.response.transfer;
 import java.util.HashMap;
 import java.util.Map;
 
-public class TransferRequest {
+public class UserTransferRequest {
 
     private String id;
 

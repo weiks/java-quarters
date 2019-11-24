@@ -2,10 +2,8 @@ package com.p3pi27.quarters.response.user;
 
 public class AccountBalance {
 
-    private long quarters;
-    private String formattedQuarters;
-    private long ethers;
-    private String formattedEthers;
+    private long quarters, ethers;
+    private String formattedQuarters, formattedEthers;
 
     public long getQuarters() {
 

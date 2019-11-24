@@ -2,10 +2,7 @@ package com.p3pi27.quarters.response.user;
 
 public class GuestAccount {
 
-    private String user_id;
-    private String access_token;
-    private String firebase_token;
-    private String address;
+    private String user_id, access_token, firebase_token, address;
 
     public String getUserID() {
 
@@ -22,7 +19,7 @@ public class GuestAccount {
         return firebase_token;
     }
 
-    public String getAddress() {
+    public String getAccountAddress() {
 
         return address;
     }

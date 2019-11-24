@@ -5,12 +5,11 @@ import java.util.Map;
 
 public class RefreshToken {
 
-    private String refresh_token;
-    private String access_token;
+    private String refresh_token, access_token;
 
-    public static Map<String, String> getRequestBody(String clientID, String clientKey, String authorizationCode) {
+    public static Map<String, Object> getRequestBody(String clientID, String clientKey, String authorizationCode) {
 
-        Map<String, String> body = new HashMap<>();
+        Map<String, Object> body = new HashMap<>();
 
         body.put("client_id", clientID);
         body.put("client_key", clientKey);
