@@ -13,7 +13,7 @@ Maven:
 <dependency>
     <groupId>com.github.weiks</groupId>
     <artifactId>java-quarters</artifactId>
-    <version>1.1</version>
+    <version>1.2</version>
 </dependency>
 ```
 Gradle:
@@ -23,15 +23,18 @@ repositories {
 }
 
 dependencies {
-    implementation 'com.github.weiks:java-quarters:1.1'
+    implementation 'com.github.weiks:java-quarters:1.2'
 }
 ```
 Download from [releases page](https://github.com/weiks/java-quarters/releases)
+
+[![](https://jitpack.io/v/weiks/java-quarters.svg)](https://jitpack.io/#weiks/java-quarters)
 ### Usage
 [Create an app](http://poq.gg/apps/create/new) and use app ID and app key to authenticate
 ```java
-// Create new Quarters instance with credentials
-Quarters quarters = new Quarters("<app-ID>", "<app-key>", QuartersEnvironment.<environment>);
+// Create new QuartersBuilder instance with credentials
+QuartersBuilder builder = new QuartersBuilder("<app-ID>", "<app-key>");
+Quarters quarters = builder.build();
 
 // Fetch user access token
 Call<AccessToken> call = quarters.getAccessToken("<refresh-token>");
@@ -43,4 +46,5 @@ String refreshToken = call.execute().body().getRefreshToken();
 call.enqueue(new MyAccessTokenCallback());
 ```
 ### Documentation
+- [Javadocs](https://javadoc.jitpack.io/com/github/weiks/java-quarters/latest/javadoc/index.html)
 - [General API documentation](https://weiks.github.io/quarters-docs/)
