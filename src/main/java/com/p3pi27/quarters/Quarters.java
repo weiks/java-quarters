@@ -187,6 +187,14 @@ public class Quarters {
                 .build();
     }
 
+    /**
+     * @return Quarters environment
+     */
+    public Environment getEnvironment() {
+
+        return environment;
+    }
+
     public enum Environment {
 
         /**
@@ -285,8 +293,8 @@ public class Quarters {
 
         private final String clientID, clientKey;
         private Environment environment = Environment.PRODUCTION;
-        private Retrofit.Builder retrofitBuilder = new Retrofit.Builder();
-        private boolean shortenURLs;
+        private final Retrofit.Builder retrofitBuilder = new Retrofit.Builder();
+        private boolean shortenURLs = false;
 
         /**
          * Construct builder instance
